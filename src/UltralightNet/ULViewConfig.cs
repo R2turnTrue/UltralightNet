@@ -7,6 +7,9 @@ namespace UltralightNet;
 [NativeMarshalling(typeof(Marshaller))]
 public struct ULViewConfig : IEquatable<ULViewConfig>
 {
+	/// <summary>A user-generated id for the display (monitor, TV, or screen) that this <see cref="View"/> will be shown on.</summary>
+	public uint DisplayId = 0;
+
 	/// <summary>The View will be rendered to an offscreen GPU texture using the <see cref="ULPlatform.GPUDriver" />. You can fetch details for the texture via <see cref="View.RenderTarget" />.</summary>
 	public bool IsAccelerated = false;
 	/// <summary>The view's background will be (0,0,0,0).</summary>
@@ -20,6 +23,8 @@ public struct ULViewConfig : IEquatable<ULViewConfig>
 	public bool EnableImages = true;
 	/// <summary>Whether or not JavaScript should be enabled.</summary>
 	public bool EnableJavaScript = true;
+	/// <summary>Whether or not compositing should be enabled.</summary>
+	public bool EnableCompositor = false;
 
 	/// <summary>Default font-family to use.</summary>
 	public string FontFamilyStandard = "Times New Roman";
@@ -36,6 +41,7 @@ public struct ULViewConfig : IEquatable<ULViewConfig>
 	public ULViewConfig() { }
 
 	public readonly bool Equals(ULViewConfig other) =>
+		DisplayId == other.DisplayId &&
 		IsAccelerated == other.IsAccelerated &&
 		IsTransparent == other.IsTransparent &&
 		InitialDeviceScale == other.InitialDeviceScale &&
@@ -58,14 +64,18 @@ public struct ULViewConfig : IEquatable<ULViewConfig>
 	[CustomMarshaller(typeof(ULViewConfig), MarshalMode.ManagedToUnmanagedIn, typeof(Marshaller))]
 	internal ref struct Marshaller
 	{
+		public uint DisplayId;
+
 		public byte IsAccelerated;
-		public byte IsTransparent;
 
 		public double InitialDeviceScale;
+		public byte IsTransparent;
 		public byte InitialFocus;
 
 		public byte EnableImages;
 		public byte EnableJavaScript;
+
+		public byte EnableCompositor;
 
 		public ULString FontFamilyStandard;
 		public ULString FontFamilyFixed;
@@ -76,12 +86,14 @@ public struct ULViewConfig : IEquatable<ULViewConfig>
 
 		public void FromManaged(ULViewConfig config)
 		{
+			DisplayId = Unsafe.As<uint, uint>(ref config.DisplayId);
 			IsAccelerated = Unsafe.As<bool, byte>(ref config.IsAccelerated);
 			IsTransparent = Unsafe.As<bool, byte>(ref config.IsTransparent);
 			InitialDeviceScale = config.InitialDeviceScale;
 			InitialFocus = Unsafe.As<bool, byte>(ref config.InitialFocus);
 			EnableImages = Unsafe.As<bool, byte>(ref config.EnableImages);
 			EnableJavaScript = Unsafe.As<bool, byte>(ref config.EnableJavaScript);
+			EnableCompositor = Unsafe.As<bool, byte>(ref config.EnableCompositor);
 			FontFamilyStandard = new(config.FontFamilyStandard.AsSpan());
 			FontFamilyFixed = new(config.FontFamilyFixed.AsSpan());
 			FontFamilySerif = new(config.FontFamilySerif.AsSpan());
