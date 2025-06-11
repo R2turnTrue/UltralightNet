@@ -36,7 +36,7 @@ public unsafe class OpenGLGPUDriver : IGPUDriver
 #if DEBUG
 		var error = gl.GetError();
 		if (error is not 0)
-			Console.WriteLine($"{line}: {error}");
+			Console.WriteLine($"[GLDriver] {line}: {error}");
 #endif
 	}
 
@@ -48,7 +48,8 @@ public unsafe class OpenGLGPUDriver : IGPUDriver
 		gl = glapi;
 
 		// DSA
-		DSA = gl.GetInteger(GLEnum.MajorVersion) >= 4 && gl.GetInteger(GLEnum.MinorVersion) >= 5;
+		//DSA = gl.GetInteger(GLEnum.MajorVersion) >= 4 && gl.GetInteger(GLEnum.MinorVersion) >= 5;
+
 		// MSAAx4
 		this.samples = samples is 0 ? (4 <= gl.GetInteger(GLEnum.MaxSamples) ? 4u : 1u) : samples;
 
@@ -641,12 +642,18 @@ public unsafe class OpenGLGPUDriver : IGPUDriver
 		}
 		else
 		{
+			Console.WriteLine($"VAO={entry.vao} / VBO={entry.vbo} / EBO={entry.ebo} / vbLen={vb.size} / ibLen={ib.size}");
+
 			gl.BindVertexArray(entry.vao);
+			Check();
 			gl.BindBuffer(BufferTargetARB.ArrayBuffer, entry.vbo);
 			gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)vb.size, vb.data, BufferUsageARB.DynamicDraw);
+			Check();
 			gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, entry.ebo);
 			gl.BufferData(BufferTargetARB.ElementArrayBuffer, ib.size, ib.data, BufferUsageARB.DynamicDraw);
+			Check();
 			gl.BindVertexArray(0);
+			Check();
 		}
 		Check();
 	}

@@ -66,6 +66,18 @@ void main()
 
 	static float scale = 1.0f;
 
+	class Logger : ILogger
+	{
+		public void Dispose()
+		{
+		}
+
+		public void LogMessage(ULLogLevel logLevel, string message)
+		{
+			Console.WriteLine($"[UltralightLog] [{logLevel}] {message}");
+		}
+	}
+
 	class FontLoader : IFontLoader
 	{
 		public void Dispose()
@@ -93,6 +105,7 @@ void main()
 		Console.WriteLine("UL " + Methods.ulVersionMajor() + "." + Methods.ulVersionMinor() + "." + Methods.ulVersionPatch());
 
 		ULPlatform.FontLoader = new FontLoader();
+		ULPlatform.Logger = new Logger();
 		//AppCoreMethods.SetPlatformFontLoader();
 
 		try
@@ -135,7 +148,7 @@ void main()
 	{
 #if DEBUG
 		var error = gl.GetError();
-		if (error is not 0) Console.WriteLine($"{line}: {error}");
+		if (error is not 0) Console.WriteLine($"[AppErr] {line}: {error}");
 #endif
 	}
 
@@ -255,9 +268,9 @@ void main()
 		//view.URL = "https://vk.com/supinepandora43";
 		//view.URL = "https://twitter.com/@supinepandora43";
 		//view.URL = "https://youtube.com";
-		//view.URL = "https://google.com";
+		view.URL = "https://google.com";
 		//view.URL = "https://en.key-test.ru/";
-		view.HTML = "<html><body><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p></body></html>";
+		//view.HTML = "<html><body><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p></body></html>";
 		bool loaded = true;
 
 		view.OnFinishLoading += (_, _, _) => loaded = true;
@@ -293,7 +306,7 @@ void main()
 		renderer.RefreshDisplay(0);
 		renderer.Render();
 		// Console.WriteLine("RB Count: " + gpuDriver.renderBuffers.Count);
-		Console.WriteLine("W: " + view.RenderTarget.TextureWidth + " / H: " + view.RenderTarget.TextureHeight);
+		//Console.WriteLine("W: " + view.RenderTarget.TextureWidth + " / H: " + view.RenderTarget.TextureHeight);
 		//var renderBuffer = gpuDriver.renderBuffers[(int)view.RenderTarget.RenderBufferId];
 		// var renderBuffer = gpuDriver.renderBuffers[0];
 		// var textureEntry = renderBuffer.textureEntry;
