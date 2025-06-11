@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using UltralightNet.Platform.HighPerformance;
 
 [assembly: InternalsVisibleTo("UltralightNet.AppCore")]
 [assembly: DisableRuntimeMarshalling]

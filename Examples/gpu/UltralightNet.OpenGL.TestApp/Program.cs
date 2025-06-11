@@ -3,11 +3,14 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
+using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using UltralightNet.AppCore;
+using UltralightNet.Platform;
 
 namespace UltralightNet.OpenGL.TestApp;
 
@@ -63,15 +66,42 @@ void main()
 
 	static float scale = 1.0f;
 
+	class FontLoader : IFontLoader
+	{
+		public void Dispose()
+		{
+		}
+
+		public string GetFallbackFont()
+		{
+			return "Pretendard";
+		}
+
+		public string GetFallbackFontForCharacters(string text, int weight, bool italic)
+		{
+			return "Pretendard";
+		}
+
+		public ULFontFile Load(string font, int weight, bool italic)
+		{
+			return ULFontFile.CreateFromFile(@"E:\tre\TreEditor\built_in_assets\fonts\Pretendard-Regular.ttf");
+		}
+	}
+
 	public unsafe static void Main()
 	{
-		AppCoreMethods.SetPlatformFontLoader();
+		Console.WriteLine("UL " + Methods.ulVersionMajor() + "." + Methods.ulVersionMinor() + "." + Methods.ulVersionPatch());
 
-		try {
+		ULPlatform.FontLoader = new FontLoader();
+		//AppCoreMethods.SetPlatformFontLoader();
+
+		try
+		{
 			Silk.NET.GLFW.GlfwProvider.GLFW.Value.GetMonitorContentScale(Silk.NET.GLFW.GlfwProvider.GLFW.Value.GetPrimaryMonitor(), out float xscale, out float yscale);
 			scale = (xscale + yscale) / 2; // account for *possible* different x y scale
-			if(scale <= 0) throw new Exception("invalid scale");
- 		} catch(Exception e) { Console.WriteLine($"Failed to account for display scale: {e}"); }
+			if (scale <= 0) throw new Exception("invalid scale");
+		}
+		catch (Exception e) { Console.WriteLine($"Failed to account for display scale: {e}"); }
 
 		window = Window.Create(WindowOptions.Default with
 		{
@@ -97,7 +127,8 @@ void main()
 	}
 
 	// [UnmanagedCallersOnly(CallConvs = new Type[]{typeof(CallConvCdecl)})]
-	private static unsafe void DebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint chars, nint userData){
+	private static unsafe void DebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint chars, nint userData)
+	{
 		Console.WriteLine(Marshal.PtrToStringUni((IntPtr)chars, (int)length));
 	}
 	private static void Check([CallerLineNumber] int line = default)
@@ -113,7 +144,7 @@ void main()
 		IInputContext input = window.CreateInput();
 		for (int i = 0; i < input.Keyboards.Count; i++)
 		{
-			//input.Keyboards[i].KeyDown += KeyDown;
+			input.Keyboards[i].KeyChar += OnKeyDown;
 		}
 		input.Mice[0].Scroll += OnScroll;
 		input.Mice[0].MouseDown += OnMouseDown;
@@ -224,9 +255,9 @@ void main()
 		//view.URL = "https://vk.com/supinepandora43";
 		//view.URL = "https://twitter.com/@supinepandora43";
 		//view.URL = "https://youtube.com";
-		//view.URL = "https://github.com";
+		//view.URL = "https://google.com";
 		//view.URL = "https://en.key-test.ru/";
-		view.HTML = "<html><body><p>123</p></body></html>";
+		view.HTML = "<html><body><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p><p>123</p></body></html>";
 		bool loaded = true;
 
 		view.OnFinishLoading += (_, _, _) => loaded = true;
@@ -259,12 +290,17 @@ void main()
 
 	static unsafe void OnRender(double obj)
 	{
+		renderer.RefreshDisplay(0);
 		renderer.Render();
-		var renderBuffer = gpuDriver.renderBuffers[(int)view.RenderTarget.RenderBufferId];
-		var textureEntry = renderBuffer.textureEntry;
+		// Console.WriteLine("RB Count: " + gpuDriver.renderBuffers.Count);
+		Console.WriteLine("W: " + view.RenderTarget.TextureWidth + " / H: " + view.RenderTarget.TextureHeight);
+		//var renderBuffer = gpuDriver.renderBuffers[(int)view.RenderTarget.RenderBufferId];
+		// var renderBuffer = gpuDriver.renderBuffers[0];
+		// var textureEntry = renderBuffer.textureEntry;
 
 		// redraw only when it has changed
-		if (renderBuffer.dirty)
+		//if (renderBuffer.dirty)
+		//if (true)
 		{
 			//gl.BindFramebuffer(FramebufferTarget.ReadFramebuffer, textureEntry.multisampledFramebuffer);
 			//gl.BindFramebuffer(FramebufferTarget.DrawFramebuffer, textureEntry.framebuffer);
@@ -273,7 +309,7 @@ void main()
 			//gl.BlitNamedFramebuffer(textureEntry.multisampledFramebuffer, textureEntry.framebuffer, 0, 0, (int)textureEntry.width, (int)textureEntry.height, 0, 0, (int)textureEntry.width, (int)textureEntry.height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
 			gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 			//window.ClearContext();
-			gl.ClearColor(0,1,0,0);
+			gl.ClearColor(0, 1, 0, 0);
 			gl.Clear((uint)(ClearBufferMask.ColorBufferBit));
 			gl.Disable(GLEnum.DepthTest);
 			gl.Disable(EnableCap.Blend);
@@ -281,14 +317,14 @@ void main()
 
 			gl.BindVertexArray(vao);
 			gl.UseProgram(quadProgram);
-			gl.BindTextureUnit(0, textureEntry.textureId);
+			gl.BindTextureUnit(0, view.RenderTarget.TextureId);
 			gl.DrawElements(PrimitiveType.Triangles, (uint)IndexBuffer.Length, DrawElementsType.UnsignedInt, null);
 			// renderBuffer.dirty = false;
 			// window.FramesPerSecond = 0;
 		}
 		// else
-			// lower fps
-			// window.FramesPerSecond = 300;
+		// lower fps
+		// window.FramesPerSecond = 300;
 	}
 
 	static void OnUpdate(double obj)
@@ -301,17 +337,22 @@ void main()
 		view.FireScrollEvent(new ULScrollEvent { Type = ULScrollEventType.ByPixel, DeltaX = (int)scroll.X * 100, DeltaY = (int)scroll.Y * 100 });
 	}
 
-	static void OnMouseDown(IMouse mouse, MouseButton button)
+	static void OnMouseDown(IMouse mouse, Silk.NET.Input.MouseButton button)
 	{
-		view.FireMouseEvent(new() { Type = ULMouseEventType.MouseDown, Button = button is MouseButton.Left ? ULMouseEventButton.Left : (button is MouseButton.Right ? ULMouseEventButton.Right : ULMouseEventButton.Middle), X = (int)(mouse.Position.X/scale), Y = (int)(mouse.Position.Y/scale) });
+		view.FireMouseEvent(new() { Type = ULMouseEventType.MouseDown, Button = button is Silk.NET.Input.MouseButton.Left ? ULMouseEventButton.Left : (button is Silk.NET.Input.MouseButton.Right ? ULMouseEventButton.Right : ULMouseEventButton.Middle), X = (int)(mouse.Position.X / scale), Y = (int)(mouse.Position.Y / scale) });
 	}
 
-	static void OnMouseUp(IMouse mouse, MouseButton button)
+	static void OnMouseUp(IMouse mouse, Silk.NET.Input.MouseButton button)
 	{
-		view.FireMouseEvent(new() { Type = ULMouseEventType.MouseUp, Button = button is MouseButton.Left ? ULMouseEventButton.Left : (button is MouseButton.Right ? ULMouseEventButton.Right : ULMouseEventButton.Middle), X = (int)(mouse.Position.X/scale), Y = (int)(mouse.Position.Y/scale) });
+		view.FireMouseEvent(new() { Type = ULMouseEventType.MouseUp, Button = button is Silk.NET.Input.MouseButton.Left ? ULMouseEventButton.Left : (button is Silk.NET.Input.MouseButton.Right ? ULMouseEventButton.Right : ULMouseEventButton.Middle), X = (int)(mouse.Position.X / scale), Y = (int)(mouse.Position.Y / scale) });
 	}
 	static void OnMouseMove(IMouse mouse, Vector2 position)
 	{
-		view.FireMouseEvent(new() { Type = ULMouseEventType.MouseMoved, X = (int)(mouse.Position.X/scale), Y = (int)(mouse.Position.Y/scale) });
+		view.FireMouseEvent(new() { Type = ULMouseEventType.MouseMoved, X = (int)(mouse.Position.X / scale), Y = (int)(mouse.Position.Y / scale) });
+	}
+
+	static void OnKeyDown(IKeyboard mouse, char k)
+	{
+		view.FireKeyEvent(ULKeyEvent.Create(ULKeyEventType.Char, 0, k, 0, k + "", k + "", false, true, false));
 	}
 }

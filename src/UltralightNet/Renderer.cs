@@ -48,6 +48,9 @@ public static unsafe partial class Methods
 
 	[LibraryImport(LibUltralight)]
 	internal static partial void ulFireGamepadButtonEvent(Renderer renderer, GamepadButtonEvent gamepadButtonEvent);
+
+	[LibraryImport(LibUltralight)]
+	internal static partial void ulRefreshDisplay(Renderer renderer, uint displayId);
 }
 
 [NativeMarshalling(typeof(Marshaller))]
@@ -98,6 +101,9 @@ public sealed unsafe class Renderer : NativeContainer
 	public void Update() => Methods.ulUpdate(this);
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void Render() => Methods.ulRender(this);
+
+	public void RefreshDisplay(uint displayId) => Methods.ulRefreshDisplay(this, displayId);
+
 	public void PurgeMemory() => Methods.ulPurgeMemory(this);
 	public void LogMemoryUsage() => Methods.ulLogMemoryUsage(this);
 

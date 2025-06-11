@@ -25,8 +25,8 @@
 		<NoWarn>1006</NoWarn>
 		<AnalysisModeReliability>all</AnalysisModeReliability>
 
-		<IsTrimmable>true</IsTrimmable>
-		<PublishTrimmed>true</PublishTrimmed>
+		<IsTrimmable>false</IsTrimmable>
+		<PublishTrimmed>false</PublishTrimmed>
 		<TrimMode>full</TrimMode>
 
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -36,7 +36,7 @@
 
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 
-		<UltralightVersion>1.3.0</UltralightVersion>
+		<UltralightVersion>1.4.0</UltralightVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
